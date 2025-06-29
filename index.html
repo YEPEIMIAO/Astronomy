@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YPM电子天文馆</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #000000, #0a0a2a 80%);
+        }
+
+        /* 背景视频设置 */
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.4; /* 调整透明度 */
+            filter: brightness(0.3) saturate(1.2); /* 调整亮度和饱和度 */
+        }
+
+        /* 背景星星效果 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 52px;
+            color: #f8a300;
+            text-shadow: 0 0 15px rgba(248, 163, 0, 0.7), 0 0 30px rgba(248, 163, 0, 0.4);
+            margin: 0;
+            letter-spacing: 2px;
+            font-weight: 600;
+            animation: glow 3s infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 15px rgba(248, 163, 0, 0.7), 0 0 30px rgba(248, 163, 0, 0.4); }
+            100% { text-shadow: 0 0 20px rgba(248, 163, 0, 0.9), 0 0 40px rgba(248, 163, 0, 0.6); }
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0 30px 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 按钮样式和动效 */
+        nav a {
+            margin: 10px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.7), rgba(255, 69, 0, 0.7));
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.7), 0 0 30px rgba(255, 165, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        nav a:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        nav a:hover:before {
+            left: 100%;
+        }
+
+        nav a:hover {
+            transform: scale(1.15) rotate(2deg);
+            box-shadow: 0 0 25px rgba(255, 165, 0, 0.9), 0 0 50px rgba(255, 165, 0, 0.5);
+        }
+
+        /* Saturn System */
+        #saturn-container {
+            margin: 40px auto;
+            position: relative;
+            width: 400px;
+            height: 400px;
+            perspective: 1500px;
+            max-width: 95vw;
+            max-height: 95vw;
+            overflow: visible; /* 确保卫星不被遮挡 */
+        }
+
+        /* 加载提示 */
+        .loading-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f8a300;
+            font-size: 18px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(248, 163, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #f8a300;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 天文冷知识区域 */
+        .fact-container {
+            margin: 30px auto;
+            padding: 25px;
+            max-width: 800px;
+            width: 90%;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 165, 0, 0.15);
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 165, 0, 0.2);
+        }
+
+        .fact-title {
+            color: #f8a300;
+            font-size: 26px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+        }
+
+        .fact-content {
+            font-size: 19px;
+            line-height: 1.7;
+            color: #e8e8e8;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 淡入淡出动画 */
+        @keyframes fadeEffect {
+            0% { opacity: 0; transform: translateY(10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+
+        .fade {
+            animation: fadeEffect 8s ease infinite;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.5), transparent);
+            color: #ccc;
+            z-index: 10;
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 36px;
+            }
+            
+            nav a {
+                padding: 12px 22px;
+                font-size: 18px;
+                margin: 6px;
+            }
+            
+            #saturn-container {
+                width: 350px;
+                height: 350px;
+            }
+
+            .fact-title {
+                font-size: 22px;
+            }
+
+            .fact-content {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 28px;
+            }
+            
+            nav a {
+                padding: 10px 18px;
+                font-size: 16px;
+                margin: 5px;
+                width: 75%;
+            }
+            
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #saturn-container {
+                width: 280px;
+                height: 280px;
+            }
+
+            .fact-title {
+                font-size: 18px;
+            }
+
+            .fact-content {
+                font-size: 15px;
+                min-height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="https://example.com/modern-astronomy-history.mp4" type="video/mp4">
+        您的浏览器不支持HTML5视频。
+    </video>
+
+    <!-- 背景星星 -->
+    <div class="stars" id="stars"></div>
+
+    <header>
+        <h1>YPM电子天文馆</h1>
+    </header>
+
+    <nav>
+        <a href="astro-photography.html" id="btn-xingye">星野</a>
+        <a href="planets.html" id="btn-xingxing">行星</a>
+        <a href="deep-space.html" id="btn-shenkong">深空</a>
+        <a href="manage.html" id="btn-manage">管理</a>
+    </nav>
+
+    <!-- 3D土星和卫星系统 -->
+    <div id="saturn-container">
+        <div class="loading-container" id="loading-indicator">
+            <div class="loading-spinner"></div>
+            <div>加载中...</div>
+        </div>
+    </div>
+
+    <!-- 天文冷知识展示区 -->
+    <div class="fact-container">
+        <h3 class="fact-title">天文冷知识</h3>
+        <p class="fact-content fade" id="factDisplay">载入中...</p>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 YPM电子天文馆 | 所有权利保留</p>
+    </footer>
+
+    <script>
+        // 直接嵌入天文冷知识数据
+        const astronomyFacts = [
+            "太阳光需要8分钟20秒才能到达地球，意味着你看到的太阳光其实是8分钟前的样子。",
+            "如果你在月球上跳跃，你能在空中停留更久，因为月球的重力是地球的六分之一。",
+            "木星的'大红斑'已经存在了至少350年，而且它的直径足够容纳三个地球。",
+            "特斯拉跑车被送上太空，它已经以约2万公里每小时的速度飞向了火星轨道。",
+            "冥王星的最大卫星卡戎，尺寸几乎和冥王星一样，它们相互绕着共同的质量中心旋转。",
+            "在地球上能看到的最大恒星，称为'UY Scuti'，它的直径约为太阳的1700倍。",
+            "宇宙中最热的地方并非恒星表面，而是超大质量黑洞的'事件视界'附近。",
+            "我们今天看到的许多星星，其实并不是它们当前的模样，而是它们几万甚至几百万年前的样子。",
+            "土星的环其实是由冰和岩石碎片组成的，它们有时甚至会形成短暂的'环雨'。",
+            "虽然土星和木星都是气态行星，但土星的密度如此低，它实际上比水还轻。",
+            "月亮上有一种奇怪的现象，称为'月震'，它是由月球的潮汐变动引起的。",
+            "恒星的一生从巨大的气体云开始，经过核聚变点燃后，最终死亡成白矮星、超新星或者黑洞。",
+            "如果你在太空中看地球，它将像一个蓝色的宝石悬挂在黑暗的背景中。",
+            "宇宙的年龄大约是138亿年，而地球的年龄大约是46亿年。",
+            "火星上的大气层比地球薄得多，但它的天空看起来呈现出一种黄红色的光辉。",
+            "天王星的自转轴几乎与轨道平面垂直，这意味着它的季节变化极为奇特。",
+            "你知道吗？在太空中，人的泪水并不会像在地球上一样下落，它们会形成小球，漂浮在眼睛周围。",
+            "牛郎星和织女星的距离大约是25光年，而它们的亮度是我们夜空中最亮的几颗星之一。",
+            "超新星爆发时，短短几秒钟的时间内，它会释放出相当于太阳一生中所发出的所有能量。",
+            "如果你站在太阳系的边缘，宇宙的背景辐射将会以大约2.7K的温度冷却到几乎与绝对零度接近。",
+            "月亮曾经离地球更近，而随着时间的推移，它每年约离地球3.8厘米。",
+            "冥王星并不是唯一的矮行星，其他类似的天体在太阳系外缘也存在。",
+            "土星的卫星泰坦拥有浓密的大气层，甚至比地球的天气系统还复杂。",
+            "太阳的核心温度高达1500万摄氏度，而它的表面温度大约是5500摄氏度。",
+            "从太空中看，地球的形状像一个略微扁平的球体，这是因为地球自转造成的离心力。",
+            "火星上存在着巨大的峡谷和火山，最大的火山名为奥林匹斯山，高达22公里，是太阳系最高的山。",
+            "银河系包含约1000亿颗恒星，而宇宙中的银河系数量超过了1000亿个。",
+            "月亮的背面从未被人类直接看见过，直到20世纪60年代末，探测器才首次拍摄到它的影像。",
+            "金星的表面温度非常高，足以熔化铅，主要是由于浓厚的二氧化碳大气层造成的温室效应。",
+            "火星的重力是地球的38%，所以你能轻松地跳得更高。",
+            "宇航员在太空中会经历骨质疏松和肌肉萎缩，因为他们的身体不再受到重力的影响。",
+            "太阳系内最小的行星是水星，且它的表面温度差异极大，白天和夜晚的温差可达600°C。",
+            "木星的质量约为地球的318倍，但它的密度比地球低得多，因此它浮在水上。",
+            "地球周围的磁场能够有效地保护我们免受太阳风和宇宙辐射的伤害。",
+            "某些星系的中心可能存在巨大的黑洞，它们的质量可达到数十亿倍太阳的质量。",
+            "地球上的水并非地球独有，科学家在其他行星的卫星上也发现了液态水的证据。",
+            "天文学家认为，宇宙的物质主要由'暗物质'和'暗能量'构成，而这两者目前尚未被直接探测到。",
+            "光年是一个距离单位，表示光在一年中传播的距离，约为9.46万亿公里。",
+            "离我们最近的恒星是比邻星，距离地球仅4.24光年，它是猎犬座中的一颗红矮星。",
+            "月亮的表面被陨石撞击坑覆盖，这是由于缺乏大气层来保护它免受外来物体的撞击。",
+            "光线的速度约为299,792,458米每秒，这使得它能在1秒钟内绕地球七圈半。",
+            "一颗超新星爆发时，可以释放出比整个银河系还要多的能量。",
+            "星座是人类为了便于辨识而定义的一组恒星，而这些星星实际上彼此相距甚远。",
+            "黑洞是宇宙中最密集的天体，它们的引力强到连光线也无法逃脱。",
+            "水星没有大气层，因此它的表面温度极端，白天可高达430°C，夜晚则降至-180°C。",
+            "地球的引力在不同地方略有不同，靠近赤道的地方因为自转的离心力而稍微轻一些。",
+            "土星的卫星恩克拉多斯可能拥有地下海洋，科学家认为这里可能适合生命存在。",
+            "太阳的质量占据了整个太阳系99.86%的质量，几乎所有物质都集中在它的周围。",
+            "火星上曾经有水流过的痕迹，这些证据让科学家认为火星曾经适宜生命生存。",
+            "在遥远的星系中，有些星星的年龄甚至比银河系还要大。",
+            "金星有着强烈的温室效应，温度常年高达450°C，足以蒸发铅。",
+            "太阳的光从内部向外传播，可能需要数十万年的时间才能穿过太阳的核心。",
+            "从太空望去，地球呈现出鲜艳的蓝色，而月亮则显得灰白无光。",
+            "科学家们已经发现宇宙中有一些星系的星际介质非常稀薄，几乎没有物质存在。",
+            "黑洞的'事件视界'是一个无法逃脱的区域，它是黑洞的界限。"
+        ];
+        
+        let currentFactIndex = 0;
+        const factDisplay = document.getElementById("factDisplay");
+
+        // 显示下一个冷知识
+        function showNextFact() {
+            factDisplay.classList.remove("fade");
+            // 触发DOM重绘
+            void factDisplay.offsetWidth;
+            factDisplay.textContent = astronomyFacts[currentFactIndex];
+            factDisplay.classList.add("fade");
+            
+            currentFactIndex = (currentFactIndex + 1) % astronomyFacts.length;
+        }
+
+        // 创建背景星星
+        function createStars() {
+            const starsContainer = document.getElementById("stars");
+            const starCount = window.innerWidth < 600 ? 100 : 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement("div");
+                star.className = "star";
+                
+                // 随机大小
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机闪烁持续时间
+                const duration = Math.random() * 3 + 2;
+                star.style.setProperty('--duration', `${duration}s`);
+                
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 使用Three.js创建真正的3D土星系统
+        function initSaturnSystem() {
+            // 引入Three.js库
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js';
+            document.head.appendChild(script);
+
+            script.onload = function() {
+                // 创建场景、相机和渲染器
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+                
+                const container = document.getElementById('saturn-container');
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+                
+                // 隐藏加载指示器
+                const loadingIndicator = document.getElementById('loading-indicator');
+                
+                const renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    alpha: true 
+                });
+                renderer.setSize(containerWidth, containerHeight);
+                renderer.setClearColor(0x000000, 0); // 透明背景
+                container.appendChild(renderer.domElement);
+
+                // 设置相机位置 - 调整为更好的视角
+                camera.position.z = 6;
+                
+                // 创建土星 - 使用简单的颜色材质作为备用
+                const saturnGeometry = new THREE.SphereGeometry(1.2, 128, 128); // 增加分段数提高细节
+                const fallbackMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xf3c87c,
+                    specular: 0x666666,
+                    shininess: 15,
+                    bumpScale: 0.05
+                });
+                
+                const saturn = new THREE.Mesh(saturnGeometry, fallbackMaterial);
+                
+                // 土星稍微扁平化
+                saturn.scale.y = 0.92; // 调整扁平度使其更接近真实土星
+                scene.add(saturn);
+                
+                // 添加土星大气光环效果
+                const saturnAtmosphereGeometry = new THREE.SphereGeometry(1.21, 128, 128);
+                const saturnAtmosphereMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xffeedd,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.FrontSide
+                });
+                const saturnAtmosphere = new THREE.Mesh(saturnAtmosphereGeometry, saturnAtmosphereMaterial);
+                saturn.add(saturnAtmosphere);
+                
+                // 尝试加载纹理
+                new THREE.TextureLoader().load(
+                    'https://i.ibb.co/S3vG1zf/saturn-texture.jpg',
+                    function(texture) {
+                        // 纹理加载成功，应用到土星
+                        texture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // 提高纹理质量
+                        
+                        // 创建凹凸贴图增加土星表面的细节
+                        new THREE.TextureLoader().load(
+                            'https://i.ibb.co/4PBY1VW/saturn-bump.jpg',
+                            function(bumpMap) {
+                                saturn.material = new THREE.MeshPhongMaterial({
+                                    map: texture,
+                                    bumpMap: bumpMap,
+                                    bumpScale: 0.05,
+                                    specular: 0x333333, // 增加光泽
+                                    shininess: 25       // 增加反光度
+                                });
+                            },
+                            undefined,
+                            function(err) {
+                                // 即使凹凸贴图加载失败，仍使用纹理
+                                saturn.material = new THREE.MeshPhongMaterial({
+                                    map: texture,
+                                    specular: 0x333333,
+                                    shininess: 15
+                                });
+                            }
+                        );
+                    },
+                    undefined,
+                    function(err) {
+                        console.error('无法加载土星纹理', err);
+                        // 已经有备用材质，无需额外处理
+                    }
+                );
+
+                // 创建土星环 - 更细更详细
+                // 创建多层土星环以增加细节和层次感
+                const ringGroups = [
+                    { inner: 1.75, outer: 2.1, color: 0xe8ddbc, opacity: 0.9 },  // A环
+                    { inner: 2.1, outer: 2.3, color: 0xc8bca0, opacity: 0.7 },   // B环
+                    { inner: 2.3, outer: 2.4, color: 0xd8c8a8, opacity: 0.6 },   // C环
+                    { inner: 1.6, outer: 1.75, color: 0xb0a890, opacity: 0.5 }   // D环
+                ];
+                
+                // 创建土星环系统
+                const ringsSystem = new THREE.Object3D();
+                
+                // 创建每一层环
+                ringGroups.forEach((ringData, index) => {
+                    const ringGeometry = new THREE.RingGeometry(ringData.inner, ringData.outer, 128, 8);
+                    
+                    // 修改UV以正确映射纹理
+                    const pos = ringGeometry.attributes.position;
+                    const v3 = new THREE.Vector3();
+                    const uv = [];
+                    
+                    for (let i = 0; i < pos.count; i++) {
+                        v3.fromBufferAttribute(pos, i);
+                        const radius = Math.sqrt(v3.x * v3.x + v3.z * v3.z);
+                        const theta = Math.atan2(v3.z, v3.x);
+                        
+                        const u = (theta + Math.PI) / (Math.PI * 2);
+                        const v = (radius - ringData.inner) / (ringData.outer - ringData.inner);
+                        
+                        uv.push(u, v);
+                    }
+                    
+                    ringGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+                    
+                    // 使用基础材质
+                    const ringMaterial = new THREE.MeshPhongMaterial({
+                        color: ringData.color,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: ringData.opacity,
+                        specular: 0x777777,
+                        shininess: 10
+                    });
+                    
+                    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                    ring.renderOrder = 10 - index; // 确保正确的渲染顺序
+                    ringsSystem.add(ring);
+                    
+                    // 尝试加载环的纹理
+                    new THREE.TextureLoader().load(
+                        'https://i.ibb.co/kHC6F9B/saturn-ring-texture.png',
+                        function(texture) {
+                            texture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // 提高纹理质量
+                            // 纹理加载成功，应用到环
+                            ring.material = new THREE.MeshPhongMaterial({
+                                map: texture,
+                                color: ringData.color,
+                                side: THREE.DoubleSide,
+                                transparent: true,
+                                opacity: ringData.opacity,
+                                specular: 0x777777,
+                                shininess: 10
+                            });
+                        }
+                    );
+                });
+                
+                // 调整环的角度
+                ringsSystem.rotation.x = Math.PI / 2 + Math.PI / 10;
+                scene.add(ringsSystem);
+
+                // 创建卫星1（泰坦）- 增加细节
+                const satellite1Geometry = new THREE.SphereGeometry(0.15, 32, 32);
+                const satellite1Material = new THREE.MeshPhongMaterial({
+                    color: 0xd2b48c,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    specular: 0x222222,
+                    shininess: 10
+                });
+                const satellite1 = new THREE.Mesh(satellite1Geometry, satellite1Material);
+                
+                // 增加泰坦的大气层效果
+                const titanAtmosphereGeometry = new THREE.SphereGeometry(0.155, 32, 32);
+                const titanAtmosphereMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xffcc99,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.FrontSide
+                });
+                const titanAtmosphere = new THREE.Mesh(titanAtmosphereGeometry, titanAtmosphereMaterial);
+                satellite1.add(titanAtmosphere);
+
+                // 创建卫星1的轨道
+                const satellite1Orbit = new THREE.Object3D();
+                satellite1Orbit.add(satellite1);
+                satellite1.position.set(2.5, 0, 0);
+                scene.add(satellite1Orbit);
+
+                // 创建卫星2（恩克拉多斯）- 增加细节
+                const satellite2Geometry = new THREE.SphereGeometry(0.1, 32, 32);
+                const satellite2Material = new THREE.MeshPhongMaterial({
+                    color: 0xf0f0f0,
+                    roughness: 0.6,
+                    metalness: 0.2,
+                    specular: 0x999999,
+                    shininess: 30 // 冰面高反光度
+                });
+                const satellite2 = new THREE.Mesh(satellite2Geometry, satellite2Material);
+
+                // 创建卫星2的轨道
+                const satellite2Orbit = new THREE.Object3D();
+                satellite2Orbit.rotation.x = Math.PI / 6;
+                satellite2Orbit.add(satellite2);
+                satellite2.position.set(2.0, 0, 0);
+                scene.add(satellite2Orbit);
+
+                // 创建卫星3（土卫八）- 增加细节
+                const satellite3Geometry = new THREE.SphereGeometry(0.08, 32, 32);
+                const satellite3Material = new THREE.MeshPhongMaterial({
+                    color: 0xc0c0c0,
+                    roughness: 0.7,
+                    metalness: 0.1,
+                    specular: 0x555555,
+                    shininess: 20
+                });
+                const satellite3 = new THREE.Mesh(satellite3Geometry, satellite3Material);
+
+                // 创建卫星3的轨道
+                const satellite3Orbit = new THREE.Object3D();
+                satellite3Orbit.rotation.x = -Math.PI / 8;
+                satellite3Orbit.rotation.z = Math.PI / 10;
+                satellite3Orbit.add(satellite3);
+                satellite3.position.set(3.0, 0, 0);
+                scene.add(satellite3Orbit);
+
+                // 增强光照系统
+                const ambientLight = new THREE.AmbientLight(0x606060, 0.6);
+                scene.add(ambientLight);
+
+                // 主光源 - 模拟太阳光
+                const directionalLight = new THREE.DirectionalLight(0xffffcc, 1.2);
+                directionalLight.position.set(5, 3, 5);
+                scene.add(directionalLight);
+                
+                // 背光效果 - 增强体积感
+                const backLight = new THREE.DirectionalLight(0x888899, 0.3);
+                backLight.position.set(-5, -2, -3);
+                scene.add(backLight);
+                
+                // 添加点光源 - 增强土星环的细节
+                const ringLight = new THREE.PointLight(0xffffcc, 0.2);
+                ringLight.position.set(3, 0, 5);
+                scene.add(ringLight);
+
+                // 在所有对象加载后隐藏加载指示器
+                loadingIndicator.style.display = 'none';
+
+                // 动画循环
+                const animate = function() {
+                    requestAnimationFrame(animate);
+
+                    // 缓慢旋转土星
+                    saturn.rotation.y += 0.005;
+
+                    // 旋转卫星轨道
+                    satellite1Orbit.rotation.y += 0.01;
+                    satellite2Orbit.rotation.y += 0.015;
+                    satellite3Orbit.rotation.y -= 0.008;
+
+                    // 轻微倾斜场景以展示3D效果
+                    scene.rotation.x = Math.sin(Date.now() * 0.0001) * 0.1;
+                    scene.rotation.y = Math.cos(Date.now() * 0.0002) * 0.1;
+
+                    renderer.render(scene, camera);
+                };
+
+                // 处理窗口大小变化
+                window.addEventListener('resize', function() {
+                    const newWidth = container.clientWidth;
+                    const newHeight = container.clientHeight;
+                    
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    
+                    renderer.setSize(newWidth, newHeight);
+                });
+
+                animate();
+            };
+            
+            // 添加错误处理
+            script.onerror = function() {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                loadingIndicator.innerHTML = '加载3D库失败，请刷新页面重试';
+            };
+        }
+
+        // 页面加载时显示第一个冷知识、创建星星并初始化土星系统
+        window.addEventListener("load", () => {
+            showNextFact();
+            createStars();
+            initSaturnSystem();
+            // 每8秒切换一次冷知识
+            setInterval(showNextFact, 8000);
+        });
+    </script>
+</body>
+</html>

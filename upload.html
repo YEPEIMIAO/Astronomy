@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YPM电子天文馆 - 作品上传</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 背景视频设置 */
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.3; /* 设置透明度 */
+            filter: brightness(0.2); /* 暗化视频 */
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 48px;
+            color: #f8a300;
+            text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.8);
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #e0e0e0;
+            margin-top: 10px;
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: rgba(255, 165, 0, 0.6);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.7), 0 0 30px rgba(255, 165, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            transform: scale(1.15) rotate(3deg);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.9), 0 0 40px rgba(255, 165, 0, 0.7);
+        }
+
+        /* 内容区域 */
+        .content-section {
+            margin: 20px auto;
+            max-width: 90%;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            padding: 10px 20px;
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 165, 0, 1);
+            transform: scale(1.05);
+        }
+
+        /* 上传表单相关样式 */
+        .admin-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .admin-panel h3 {
+            color: #f8a300;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .password-form, .upload-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input[type="file"] {
+            padding: 10px 0;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: rgba(255, 165, 0, 1);
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .upload-success {
+            color: #4CAF50;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .upload-error {
+            color: #f44336;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            border-radius: 5px;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            nav a {
+                padding: 12px 20px;
+                font-size: 16px;
+                margin: 5px;
+            }
+
+            .admin-panel {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav a {
+                padding: 10px 15px;
+                font-size: 14px;
+                margin: 5px;
+                width: 80%;
+            }
+            
+            .back-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* 上传类型标记 - 隐藏但用于识别当前上传类型 */
+        #upload-type {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="https://example.com/deep-space-video.mp4" type="video/mp4">
+        您的浏览器不支持HTML5视频。
+    </video>
+
+    <!-- 返回主页按钮 -->
+    <a href="index.html" class="back-button">返回首页</a>
+
+    <header>
+        <h1>YPM电子天文馆</h1>
+        <p class="subtitle" id="upload-subtitle">天文摄影作品上传</p>
+    </header>
+
+    <nav>
+        <a href="index.html">首页</a>
+    </nav>
+
+    <div class="content-section">
+        <div class="admin-panel">
+            <h3>管理员验证</h3>
+            <div id="password-section">
+                <div class="form-group">
+                    <label for="admin-password">请输入管理员密码：</label>
+                    <input type="password" id="admin-password">
+                </div>
+                <button id="verify-password">验证密码</button>
+                <p id="password-error" class="upload-error hidden">密码错误，请重试</p>
+            </div>
+            
+            <div id="upload-section" class="hidden">
+                <!-- 隐藏的上传类型标记 -->
+                <input type="hidden" id="upload-type" value="dso">
+                
+                <h3 id="upload-form-title">上传作品</h3>
+                <form id="upload-form" class="upload-form">
+                    <div class="form-group" id="category-group">
+                        <label for="category">选择类别：</label>
+                        <select id="category">
+                            <option value="nebulae">星云</option>
+                            <option value="galaxies">星系</option>
+                            <option value="clusters">星团</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="title">作品标题：</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group" id="location-group">
+                        <label for="location">拍摄地点：</label>
+                        <input type="text" id="location">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">作品介绍：</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="image-file">选择图片：</label>
+                        <input type="file" id="image-file" accept="image/*" required>
+                        <img id="image-preview" class="image-preview">
+                    </div>
+                    <button type="submit">上传作品</button>
+                </form>
+                <p id="upload-success" class="upload-success hidden">上传成功！</p>
+                <p id="upload-error" class="upload-error hidden">上传失败，请重试</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="upload-handler.js"></script>
+    <script>
+        // 密码验证
+        async function verifyPassword() {
+            const password = document.getElementById('admin-password').value;
+            console.log("上传页面 - 尝试验证密码:", password);
+            
+            try {
+                // 直接检查是否为正确密码
+                if (password === "abcd8899") {
+                    console.log("上传页面 - 密码直接匹配成功！");
+                    document.getElementById('password-section').style.display = 'none';
+                    document.getElementById('upload-section').classList.remove('hidden');
+                    
+                    // 从URL参数获取上传类型
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const type = urlParams.get('type');
+                    
+                    // 根据URL参数设置上传类型
+                    if (type) {
+                        document.getElementById('upload-type').value = type;
+                    }
+                    
+                    // 根据上传类型调整表单
+                    setupFormByType();
+                    return;
+                }
+                
+                // 使用安全的哈希比较方法验证密码
+                const isValid = await UploadHandler.verifyPassword(password);
+                console.log("上传页面 - 密码验证结果:", isValid);
+                
+                if (isValid) {
+                    document.getElementById('password-section').style.display = 'none';
+                    document.getElementById('upload-section').classList.remove('hidden');
+                    
+                    // 从URL参数获取上传类型
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const type = urlParams.get('type');
+                    
+                    // 根据URL参数设置上传类型
+                    if (type) {
+                        document.getElementById('upload-type').value = type;
+                    }
+                    
+                    // 根据上传类型调整表单
+                    setupFormByType();
+                } else {
+                    console.log("上传页面 - 密码验证失败");
+                    document.getElementById('password-error').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('上传页面 - 密码验证失败:', error);
+                document.getElementById('password-error').classList.remove('hidden');
+            }
+        }
+
+        // 预览图片
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const preview = document.getElementById('image-preview');
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+        
+        // 根据上传类型调整界面
+        function setupFormByType() {
+            const type = document.getElementById('upload-type').value;
+            
+            // 隐藏所有特殊字段
+            document.getElementById('location-group').style.display = 'none';
+            document.getElementById('category-group').style.display = 'none';
+            
+            // 调整标题
+            const subtitle = document.getElementById('upload-subtitle');
+            const formTitle = document.getElementById('upload-form-title');
+            
+            // 根据类型显示特定字段和标题
+            if (type === 'dso') {
+                subtitle.textContent = '深空天体摄影作品上传';
+                formTitle.textContent = '上传深空天体作品';
+                document.getElementById('category-group').style.display = 'block';
+            } else if (type === 'planets') {
+                subtitle.textContent = '行星摄影作品上传';
+                formTitle.textContent = '上传行星作品';
+            } else if (type === 'astro') {
+                subtitle.textContent = '星野摄影作品上传';
+                formTitle.textContent = '上传星野摄影作品';
+                document.getElementById('location-group').style.display = 'block';
+            }
+        }
+
+        // 保存上传的数据
+        async function saveUploadData() {
+            const uploadType = document.getElementById('upload-type').value;
+            const name = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const imageInput = document.getElementById('image-file');
+            
+            if (!name || !description || !imageInput.files[0]) {
+                document.getElementById('upload-error').classList.remove('hidden');
+                setTimeout(function() {
+                    document.getElementById('upload-error').classList.add('hidden');
+                }, 3000);
+                return;
+            }
+
+            // 读取图片并保存数据
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                // 创建图片对象以确保图片已加载
+                const img = new Image();
+                img.onload = async function() {
+                    try {
+                        // 准备元数据
+                        const metadata = {
+                            name: name,
+                            description: description,
+                            filename: imageInput.files[0].name
+                        };
+                        
+                        // 添加特定字段
+                        if (uploadType === 'astro') {
+                            metadata.location = document.getElementById('location').value || '未知地点';
+                        } else if (uploadType === 'dso') {
+                            metadata.category = document.getElementById('category').value;
+                        }
+                        
+                        // 保存图片
+                        const result = await UploadHandler.saveImage(
+                            event.target.result,
+                            uploadType,
+                            metadata
+                        );
+                        
+                        if (result.success) {
+                            // 显示成功消息
+                            document.getElementById('upload-success').classList.remove('hidden');
+                            
+                            // 清空表单
+                            document.getElementById('upload-form').reset();
+                            document.getElementById('image-preview').style.display = 'none';
+                            
+                            // 3秒后跳转回对应页面
+                            setTimeout(function() {
+                                if (uploadType === 'dso') {
+                                    window.location.href = 'deep-space.html';
+                                } else if (uploadType === 'planets') {
+                                    window.location.href = 'planets.html';
+                                } else if (uploadType === 'astro') {
+                                    window.location.href = 'astro-photography.html';
+                                }
+                            }, 3000);
+                        } else {
+                            throw new Error(result.error || '上传失败');
+                        }
+                    } catch (error) {
+                        console.error('保存数据失败:', error);
+                        document.getElementById('upload-error').classList.remove('hidden');
+                        setTimeout(function() {
+                            document.getElementById('upload-error').classList.add('hidden');
+                        }, 3000);
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.onerror = function() {
+                document.getElementById('upload-error').classList.remove('hidden');
+                setTimeout(function() {
+                    document.getElementById('upload-error').classList.add('hidden');
+                }, 3000);
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加事件监听器
+            document.getElementById('verify-password').addEventListener('click', verifyPassword);
+            document.getElementById('image-file').addEventListener('change', previewImage);
+            
+            // 检查URL参数，如果有类型参数，自动设置上传类型
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type');
+            if (type) {
+                document.getElementById('upload-type').value = type;
+            }
+            
+            // 处理表单提交
+            document.getElementById('upload-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUploadData();
+            });
+        });
+    </script>
+</body>
+</html> 

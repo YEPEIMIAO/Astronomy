@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YPM电子天文馆 - 行星</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 背景视频设置 */
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.3; /* 设置透明度 */
+            filter: brightness(0.2); /* 暗化视频 */
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 48px;
+            color: #f8a300;
+            text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.8);
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #e0e0e0;
+            margin-top: 10px;
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: rgba(255, 165, 0, 0.6);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.7), 0 0 30px rgba(255, 165, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            transform: scale(1.15) rotate(3deg);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.9), 0 0 40px rgba(255, 165, 0, 0.7);
+        }
+
+        /* 内容区域 */
+        .content-section {
+            margin: 20px auto;
+            max-width: 90%;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        /* 行星卡片容器 */
+        .planets-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px auto;
+        }
+
+        /* 行星卡片 */
+        .planet-card {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .planet-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+        }
+
+        .planet-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 2px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .planet-info {
+            padding: 20px;
+        }
+
+        .planet-name {
+            color: #f8a300;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+
+        .planet-description {
+            color: #e0e0e0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .planet-facts {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .planet-facts p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            z-index: 10;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            padding: 10px 20px;
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 165, 0, 1);
+            transform: scale(1.05);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            nav a {
+                padding: 12px 20px;
+                font-size: 16px;
+                margin: 5px;
+            }
+            
+            .planet-card {
+                width: 280px;
+            }
+            
+            .planet-name {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav a {
+                padding: 10px 15px;
+                font-size: 14px;
+                margin: 5px;
+                width: 80%;
+            }
+            
+            .planet-card {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .planet-image {
+                height: 180px;
+            }
+            
+            .back-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* 添加新作品按钮 */
+        .add-item {
+            width: 300px;
+            height: 350px;
+            background-color: rgba(50, 50, 50, 0.3);
+            border-radius: 15px;
+            border: 2px dashed rgba(255, 165, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .add-item:hover {
+            background-color: rgba(50, 50, 50, 0.5);
+            border-color: rgba(255, 165, 0, 0.8);
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .add-icon {
+            font-size: 80px;
+            color: rgba(255, 165, 0, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .add-item:hover .add-icon {
+            color: rgba(255, 165, 0, 1);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="https://example.com/planets-video.mp4" type="video/mp4">
+        您的浏览器不支持HTML5视频。
+    </video>
+
+    <!-- 返回主页按钮 -->
+    <a href="index.html" class="back-button">返回主页</a>
+
+    <header>
+        <h1>YPM电子天文馆</h1>
+        <p class="subtitle">太阳系行星探索</p>
+    </header>
+
+    <nav>
+        <a href="#rocky-planets">岩质行星</a>
+        <a href="#gas-giants">气态巨星</a>
+        <a href="#dwarf-planets">矮行星</a>
+        <a href="manage.html" class="admin-link">管理作品</a>
+    </nav>
+
+    <!-- 用户上传的行星图片 -->
+    <div class="content-section" id="user-planets">
+        <h2>行星摄影作品</h2>
+        <div id="user-planets-container" class="planets-container">
+            <!-- 用户上传的行星作品将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <div class="content-section" id="rocky-planets">
+        <h2>岩质行星</h2>
+        <div class="planets-container">
+            <!-- 水星 -->
+            <div class="planet-card">
+                <img src="https://example.com/mercury.jpg" alt="水星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">水星</h3>
+                    <p class="planet-description">水星是太阳系中最小和最接近太阳的行星，也是太阳系中公转最快的行星。它的表面布满了陨石坑，类似于月球，没有大气保护。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>0.39天文单位</p>
+                        <p><strong>公转周期：</strong>88天</p>
+                        <p><strong>自转周期：</strong>58.6天</p>
+                        <p><strong>表面温度：</strong>-173°C至427°C</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 金星 -->
+            <div class="planet-card">
+                <img src="https://example.com/venus.jpg" alt="金星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">金星</h3>
+                    <p class="planet-description">金星是太阳系中第二大行星，也被称为晨星或昏星。它有着浓厚的大气层，主要由二氧化碳组成，导致严重的温室效应使其表面温度异常高。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>0.72天文单位</p>
+                        <p><strong>公转周期：</strong>225天</p>
+                        <p><strong>自转周期：</strong>243天（逆行）</p>
+                        <p><strong>表面温度：</strong>平均462°C</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 地球 -->
+            <div class="planet-card">
+                <img src="https://example.com/earth.jpg" alt="地球" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">地球</h3>
+                    <p class="planet-description">地球是目前已知唯一孕育生命的行星，拥有液态水和氧气丰富的大气层。它是太阳系中密度最大的行星，也是拥有活跃板块构造的唯一行星。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>1天文单位</p>
+                        <p><strong>公转周期：</strong>365.25天</p>
+                        <p><strong>自转周期：</strong>23小时56分</p>
+                        <p><strong>表面温度：</strong>-88°C至58°C</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 火星 -->
+            <div class="planet-card">
+                <img src="https://example.com/mars.jpg" alt="火星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">火星</h3>
+                    <p class="planet-description">火星被称为"红色行星"，因其表面铁氧化物丰富而呈红色。火星有稀薄的大气层，表面有河谷、极冰和巨大的火山，科学家认为它曾存在液态水。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>1.52天文单位</p>
+                        <p><strong>公转周期：</strong>687天</p>
+                        <p><strong>自转周期：</strong>24小时37分</p>
+                        <p><strong>表面温度：</strong>-153°C至20°C</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section" id="gas-giants">
+        <h2>气态巨星</h2>
+        <div class="planets-container">
+            <!-- 木星 -->
+            <div class="planet-card">
+                <img src="https://example.com/jupiter.jpg" alt="木星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">木星</h3>
+                    <p class="planet-description">木星是太阳系中最大的行星，质量是太阳系所有其他行星总和的2.5倍。它是一个巨大的气体行星，主要由氢和氦组成，有壮观的大红斑和多条彩色云带。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>5.2天文单位</p>
+                        <p><strong>公转周期：</strong>11.86年</p>
+                        <p><strong>自转周期：</strong>9小时55分</p>
+                        <p><strong>已知卫星数：</strong>79个</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 土星 -->
+            <div class="planet-card">
+                <img src="https://example.com/saturn.jpg" alt="土星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">土星</h3>
+                    <p class="planet-description">土星以其壮观的环系统而闻名，这些环由冰粒子、岩石碎片和尘埃组成。它是太阳系中第二大行星，也是密度最小的行星，其密度比水还低。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>9.58天文单位</p>
+                        <p><strong>公转周期：</strong>29.46年</p>
+                        <p><strong>自转周期：</strong>10小时34分</p>
+                        <p><strong>已知卫星数：</strong>82个</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 天王星 -->
+            <div class="planet-card">
+                <img src="https://example.com/uranus.jpg" alt="天王星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">天王星</h3>
+                    <p class="planet-description">天王星是一个冰巨星，其轴倾斜度极高，几乎是横躺着公转的。它有一个由13个已知环组成的系统，颜色呈现为青蓝色，是因为其大气中甲烷的存在。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>19.22天文单位</p>
+                        <p><strong>公转周期：</strong>84.01年</p>
+                        <p><strong>自转周期：</strong>17小时14分</p>
+                        <p><strong>已知卫星数：</strong>27个</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 海王星 -->
+            <div class="planet-card">
+                <img src="https://example.com/neptune.jpg" alt="海王星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">海王星</h3>
+                    <p class="planet-description">海王星是太阳系中最遥远的大行星，也是太阳系中风速最高的行星，表面风速可达每小时2,100公里。它的蓝色来源于大气中甲烷的吸收作用。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>30.05天文单位</p>
+                        <p><strong>公转周期：</strong>164.8年</p>
+                        <p><strong>自转周期：</strong>16小时</p>
+                        <p><strong>已知卫星数：</strong>14个</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section" id="dwarf-planets">
+        <h2>矮行星</h2>
+        <div class="planets-container">
+            <!-- 冥王星 -->
+            <div class="planet-card">
+                <img src="https://example.com/pluto.jpg" alt="冥王星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">冥王星</h3>
+                    <p class="planet-description">冥王星曾被认为是太阳系中的第九大行星，但在2006年被重新分类为矮行星。它的表面有冰山和冰原，主要由氮冰、甲烷冰和一氧化碳冰组成。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>39.48天文单位</p>
+                        <p><strong>公转周期：</strong>248年</p>
+                        <p><strong>自转周期：</strong>6.4天</p>
+                        <p><strong>已知卫星数：</strong>5个</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 谷神星 -->
+            <div class="planet-card">
+                <img src="https://example.com/ceres.jpg" alt="谷神星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">谷神星</h3>
+                    <p class="planet-description">谷神星是太阳系小行星带中最大的天体，也是唯一一个位于小行星带的矮行星。它可能拥有液态水的地下海洋，表面有明亮的盐类沉积物。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>2.77天文单位</p>
+                        <p><strong>公转周期：</strong>4.6年</p>
+                        <p><strong>自转周期：</strong>9小时</p>
+                        <p><strong>直径：</strong>约940公里</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 妊神星 -->
+            <div class="planet-card">
+                <img src="https://example.com/eris.jpg" alt="妊神星" class="planet-image">
+                <div class="planet-info">
+                    <h3 class="planet-name">妊神星</h3>
+                    <p class="planet-description">妊神星是一个柯伊伯带天体，质量与冥王星相当，但体积略小。它是引发冥王星降级为矮行星的主要原因之一，因为它的发现导致天文学家重新定义行星概念。</p>
+                    <div class="planet-facts">
+                        <p><strong>平均距离太阳：</strong>67.8天文单位</p>
+                        <p><strong>公转周期：</strong>557年</p>
+                        <p><strong>自转周期：</strong>25.9小时</p>
+                        <p><strong>已知卫星数：</strong>1个</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 YPM电子天文馆 | 所有权利保留</p>
+    </footer>
+
+    <script>
+        // 初始化数据存储
+        let planetsData = [];
+
+        // 从本地存储加载数据
+        function loadPlanetsData() {
+            const storedData = localStorage.getItem('planetsData');
+            if (storedData) {
+                try {
+                    planetsData = JSON.parse(storedData);
+                    renderPlanetsData();
+                } catch (error) {
+                    console.error('加载数据失败:', error);
+                }
+            } else {
+                // 如果没有数据，也要渲染"+"号添加按钮
+                renderAddButton();
+            }
+        }
+
+        // 渲染行星对象
+        function renderPlanetsData() {
+            // 清空容器
+            const container = document.getElementById('user-planets-container');
+            container.innerHTML = '';
+            
+            // 渲染所有上传的行星
+            planetsData.forEach(function(item) {
+                renderPlanetCard(item, 'user-planets-container');
+            });
+            
+            // 添加"+"号按钮
+            renderAddButton();
+        }
+
+        // 渲染单个行星卡片
+        function renderPlanetCard(item, containerId) {
+            const container = document.getElementById(containerId);
+            
+            const card = document.createElement('div');
+            card.className = 'planet-card';
+            
+            const img = document.createElement('img');
+            img.className = 'planet-image';
+            img.src = item.image;
+            img.alt = item.name;
+            
+            const info = document.createElement('div');
+            info.className = 'planet-info';
+            
+            const name = document.createElement('h3');
+            name.className = 'planet-name';
+            name.textContent = item.name;
+            
+            const description = document.createElement('p');
+            description.className = 'planet-description';
+            description.textContent = item.description;
+            
+            info.appendChild(name);
+            info.appendChild(description);
+            
+            card.appendChild(img);
+            card.appendChild(info);
+            
+            container.appendChild(card);
+        }
+        
+        // 渲染添加按钮
+        function renderAddButton() {
+            const container = document.getElementById('user-planets-container');
+            
+            const addItem = document.createElement('div');
+            addItem.className = 'add-item';
+            addItem.onclick = function() { 
+                window.location.href = 'upload.html?type=planets';
+            };
+            
+            const addIcon = document.createElement('div');
+            addIcon.className = 'add-icon';
+            addIcon.textContent = '+';
+            
+            addItem.appendChild(addIcon);
+            container.appendChild(addItem);
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', loadPlanetsData);
+    </script>
+</body>
+</html> 

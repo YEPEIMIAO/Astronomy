@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YPM电子天文馆 - 深空天体</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 背景视频设置 */
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.3; /* 设置透明度 */
+            filter: brightness(0.2); /* 暗化视频 */
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 48px;
+            color: #f8a300;
+            text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.8);
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #e0e0e0;
+            margin-top: 10px;
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: rgba(255, 165, 0, 0.6);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.7), 0 0 30px rgba(255, 165, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            transform: scale(1.15) rotate(3deg);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.9), 0 0 40px rgba(255, 165, 0, 0.7);
+        }
+
+        /* 内容区域 */
+        .content-section {
+            margin: 20px auto;
+            max-width: 90%;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        /* 深空天体卡片容器 */
+        .deepspace-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px auto;
+        }
+
+        /* 深空天体卡片 */
+        .deepspace-card {
+            width: 350px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .deepspace-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+        }
+
+        .deepspace-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 2px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .deepspace-info {
+            padding: 20px;
+        }
+
+        .deepspace-name {
+            color: #f8a300;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+
+        .deepspace-description {
+            color: #e0e0e0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .deepspace-facts {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .deepspace-facts p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        /* 银河系模型 */
+        .galaxy-model {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .galaxy-disc {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 165, 0, 0.7) 20%,
+                rgba(255, 69, 0, 0.5) 40%,
+                rgba(128, 0, 128, 0.3) 60%,
+                rgba(0, 0, 128, 0.1) 80%,
+                transparent 100%
+            );
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            transform: rotateX(70deg);
+            animation: rotateGalaxy 30s infinite linear;
+        }
+
+        .galaxy-core {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 1) 0%,
+                rgba(255, 165, 0, 0.8) 40%,
+                rgba(255, 69, 0, 0.6) 70%,
+                transparent 100%
+            );
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.8), 0 0 80px rgba(255, 165, 0, 0.5);
+            animation: pulsateCore 3s infinite alternate;
+        }
+
+        @keyframes rotateGalaxy {
+            0% { transform: rotateX(70deg) rotateZ(0deg); }
+            100% { transform: rotateX(70deg) rotateZ(360deg); }
+        }
+
+        @keyframes pulsateCore {
+            0% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 165, 0, 0.3); }
+            100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.8), 0 0 80px rgba(255, 165, 0, 0.6); }
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            z-index: 10;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            padding: 10px 20px;
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 165, 0, 1);
+            transform: scale(1.05);
+        }
+
+        /* 上传表单相关样式 */
+        .admin-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .admin-panel h3 {
+            color: #f8a300;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .password-form, .upload-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input[type="file"] {
+            padding: 10px 0;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: rgba(255, 165, 0, 1);
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .upload-success {
+            color: #4CAF50;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .upload-error {
+            color: #f44336;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            border-radius: 5px;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            nav a {
+                padding: 12px 20px;
+                font-size: 16px;
+                margin: 5px;
+            }
+            
+            .deepspace-card {
+                width: 280px;
+            }
+
+            .deepspace-image {
+                height: 180px;
+            }
+            
+            .deepspace-name {
+                font-size: 20px;
+            }
+
+            .galaxy-model {
+                width: 250px;
+                height: 250px;
+            }
+
+            .galaxy-core {
+                width: 50px;
+                height: 50px;
+            }
+
+            .admin-panel {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav a {
+                padding: 10px 15px;
+                font-size: 14px;
+                margin: 5px;
+                width: 80%;
+            }
+            
+            .deepspace-card {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .deepspace-image {
+                height: 160px;
+            }
+            
+            .back-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+
+            .galaxy-model {
+                width: 200px;
+                height: 200px;
+            }
+
+            .galaxy-core {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* 深空天体卡片 */
+        .dso-card {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .dso-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.7);
+        }
+
+        .dso-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 2px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .dso-info {
+            padding: 20px;
+        }
+
+        .dso-name {
+            color: #00bfff;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+
+        .dso-description {
+            color: #e0e0e0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* 添加新作品按钮 */
+        .add-item {
+            width: 300px;
+            height: 350px;
+            background-color: rgba(50, 50, 50, 0.3);
+            border-radius: 15px;
+            border: 2px dashed rgba(0, 191, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .add-item:hover {
+            background-color: rgba(50, 50, 50, 0.5);
+            border-color: rgba(0, 191, 255, 0.8);
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+        }
+
+        .add-icon {
+            font-size: 80px;
+            color: rgba(0, 191, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .add-item:hover .add-icon {
+            color: rgba(0, 191, 255, 1);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="https://example.com/deep-space-video.mp4" type="video/mp4">
+        您的浏览器不支持HTML5视频。
+    </video>
+
+    <!-- 返回主页按钮 -->
+    <a href="index.html" class="back-button">返回主页</a>
+
+    <header>
+        <h1>YPM电子天文馆</h1>
+        <p class="subtitle">深空天体探索</p>
+    </header>
+
+    <!-- 银河系模型 -->
+    <div class="galaxy-model">
+        <div class="galaxy-disc"></div>
+        <div class="galaxy-core"></div>
+    </div>
+
+    <nav>
+        <a href="#nebulae">星云</a>
+        <a href="#galaxies">星系</a>
+        <a href="#clusters">星团</a>
+        <a href="manage.html" class="admin-link">管理作品</a>
+    </nav>
+
+    <div class="content-section" id="nebulae">
+        <h2>星云</h2>
+        <div id="nebulae-container" class="deepspace-container">
+            <!-- 星云作品将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <div class="content-section" id="galaxies">
+        <h2>星系</h2>
+        <div id="galaxies-container" class="deepspace-container">
+            <!-- 星系作品将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <div class="content-section" id="clusters">
+        <h2>星团</h2>
+        <div id="clusters-container" class="deepspace-container">
+            <!-- 星团作品将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <div class="content-section" id="user-dso">
+        <h2>深空天体摄影作品</h2>
+        <div id="user-dso-container" class="dso-container">
+            <!-- 用户上传的深空天体作品将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 YPM电子天文馆 | 所有权利保留</p>
+    </footer>
+
+    <script>
+        // 初始化数据存储
+        let deepspaceData = {
+            nebulae: [],
+            galaxies: [],
+            clusters: []
+        };
+
+        let dsoData = [];
+
+        // 从本地存储加载数据
+        function loadDeepspaceData() {
+            const storedData = localStorage.getItem('deepspaceData');
+            if (storedData) {
+                try {
+                    deepspaceData = JSON.parse(storedData);
+                    renderDeepspaceData();
+                } catch (error) {
+                    console.error('加载数据失败:', error);
+                }
+            }
+        }
+
+        function loadDsoData() {
+            const storedData = localStorage.getItem('dsoData');
+            if (storedData) {
+                try {
+                    dsoData = JSON.parse(storedData);
+                    renderDsoData();
+                } catch (error) {
+                    console.error('加载数据失败:', error);
+                }
+            } else {
+                // 如果没有数据，也要渲染"+"号添加按钮
+                renderAddButton();
+            }
+        }
+
+        // 兼容旧数据格式，将旧数据迁移到新格式
+        function migrateOldData() {
+            const storedData = localStorage.getItem('deepspaceData');
+            if (storedData && !localStorage.getItem('dataMigrated')) {
+                try {
+                    const oldData = JSON.parse(storedData);
+                    let newDsoData = [];
+                    
+                    // 合并所有分类的数据
+                    if (oldData.nebulae && oldData.nebulae.length > 0) {
+                        oldData.nebulae.forEach(item => {
+                            newDsoData.push({
+                                name: item.name,
+                                description: item.description + ' (星云)',
+                                image: item.image,
+                                timestamp: item.timestamp || new Date().toISOString()
+                            });
+                        });
+                    }
+                    
+                    if (oldData.galaxies && oldData.galaxies.length > 0) {
+                        oldData.galaxies.forEach(item => {
+                            newDsoData.push({
+                                name: item.name,
+                                description: item.description + ' (星系)',
+                                image: item.image,
+                                timestamp: item.timestamp || new Date().toISOString()
+                            });
+                        });
+                    }
+                    
+                    if (oldData.clusters && oldData.clusters.length > 0) {
+                        oldData.clusters.forEach(item => {
+                            newDsoData.push({
+                                name: item.name,
+                                description: item.description + ' (星团)',
+                                image: item.image,
+                                timestamp: item.timestamp || new Date().toISOString()
+                            });
+                        });
+                    }
+                    
+                    // 保存新格式数据
+                    if (newDsoData.length > 0) {
+                        localStorage.setItem('dsoData', JSON.stringify(newDsoData));
+                        localStorage.setItem('dataMigrated', 'true');
+                        dsoData = newDsoData;
+                    }
+                } catch (error) {
+                    console.error('数据迁移失败:', error);
+                }
+            }
+        }
+
+        // 渲染深空天体对象
+        function renderDeepspaceData() {
+            // 渲染星云
+            renderDeepspaceCategory('nebulae', 'nebulae-container');
+            
+            // 渲染星系
+            renderDeepspaceCategory('galaxies', 'galaxies-container');
+            
+            // 渲染星团
+            renderDeepspaceCategory('clusters', 'clusters-container');
+        }
+
+        // 渲染深空天体分类
+        function renderDeepspaceCategory(category, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // 渲染该分类的所有项目
+            deepspaceData[category].forEach(function(item) {
+                renderDeepspaceObject(item, containerId);
+            });
+        }
+
+        // 渲染单个深空天体对象
+        function renderDeepspaceObject(item, containerId) {
+            const container = document.getElementById(containerId);
+            
+            const card = document.createElement('div');
+            card.className = 'deepspace-card';
+            
+            const img = document.createElement('img');
+            img.className = 'deepspace-image';
+            img.src = item.image;
+            img.alt = item.name;
+            
+            const info = document.createElement('div');
+            info.className = 'deepspace-info';
+            
+            const name = document.createElement('h3');
+            name.className = 'deepspace-name';
+            name.textContent = item.name;
+            
+            const description = document.createElement('p');
+            description.className = 'deepspace-description';
+            description.textContent = item.description;
+            
+            info.appendChild(name);
+            info.appendChild(description);
+            
+            card.appendChild(img);
+            card.appendChild(info);
+            
+            container.appendChild(card);
+        }
+
+        // 渲染深空天体
+        function renderDsoData() {
+            // 清空容器
+            const container = document.getElementById('user-dso-container');
+            container.innerHTML = '';
+            
+            // 渲染所有上传的深空天体
+            dsoData.forEach(function(item) {
+                renderDsoItem(item, 'user-dso-container');
+            });
+            
+            // 添加"+"号按钮
+            renderAddButton();
+        }
+
+        // 渲染单个深空天体卡片
+        function renderDsoItem(item, containerId) {
+            const container = document.getElementById(containerId);
+            
+            const card = document.createElement('div');
+            card.className = 'dso-card';
+            
+            const img = document.createElement('img');
+            img.className = 'dso-image';
+            img.src = item.image;
+            img.alt = item.name;
+            
+            const info = document.createElement('div');
+            info.className = 'dso-info';
+            
+            const name = document.createElement('h3');
+            name.className = 'dso-name';
+            name.textContent = item.name;
+            
+            const description = document.createElement('p');
+            description.className = 'dso-description';
+            description.textContent = item.description;
+            
+            info.appendChild(name);
+            info.appendChild(description);
+            
+            card.appendChild(img);
+            card.appendChild(info);
+            
+            container.appendChild(card);
+        }
+        
+        // 渲染添加按钮
+        function renderAddButton() {
+            const container = document.getElementById('user-dso-container');
+            
+            const addItem = document.createElement('div');
+            addItem.className = 'add-item';
+            addItem.onclick = function() { 
+                window.location.href = 'upload.html?type=dso';
+            };
+            
+            const addIcon = document.createElement('div');
+            addIcon.className = 'add-icon';
+            addIcon.textContent = '+';
+            
+            addItem.appendChild(addIcon);
+            container.appendChild(addItem);
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            migrateOldData();
+            loadDeepspaceData();
+            loadDsoData();
+        });
+    </script>
+</body>
+</html> 
